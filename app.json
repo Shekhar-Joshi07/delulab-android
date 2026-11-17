@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "Delulab",
+    "slug": "delulab",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "android": {
+      "package": "com.delulab.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#8055F6"
+      },
+      "edgeToEdgeEnabled": true
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.delulab.app"
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}

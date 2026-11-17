@@ -1,0 +1,12 @@
+node_modules/
+.expo/
+dist/
+dist-test/
+login-screen-check/
+dist-web-check/
+npm-debug.log*
+*.jks
+*.keystore
+*.p8
+*.p12
+*.mobileprovision
