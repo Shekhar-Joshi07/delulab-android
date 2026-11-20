@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useFonts } from 'expo-font';
 import Svg, { Path } from 'react-native-svg';
 import Reanimated, { cancelAnimation, Easing as ReanimatedEasing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
+import CountryMark from '../components/CountryMark';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Animated,
   Easing,
@@ -9,7 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -37,12 +39,20 @@ function GoogleIcon() {
   </Svg>;
 }
 
+function MailIcon() {
+  return <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" accessibilityLabel="Email">
+    <Path d="M3.5 6.5h17v11h-17z" stroke="#8D7D9F" strokeWidth={1.8} strokeLinejoin="round" />
+    <Path d="m4.5 7.5 7.5 6 7.5-6" stroke="#8D7D9F" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+  </Svg>;
+}
+
 /**
  * Static login UI. The form deliberately has no authentication request yet;
  * the callbacks only dismiss the keyboard until the API contract is available.
  */
 export default function LoginScreen({ onJoin, onEmail, onMobile, onGoogle, preparing = false }) {
   const { height, width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [countryCode, setCountryCode] = useState('+91');
@@ -62,7 +72,7 @@ export default function LoginScreen({ onJoin, onEmail, onMobile, onGoogle, prepa
     Inter_900Black: require('@expo-google-fonts/inter/900Black/Inter_900Black.ttf'),
   });
 
-  const heroHeight = useMemo(() => Math.round(Math.max(320, Math.min(height * 0.5, 416))), [height]);
+  const heroHeight = useMemo(() => Math.round(Math.max(240, Math.min((height - insets.top - insets.bottom) * 0.48, 416))), [height, insets.top, insets.bottom]);
   const shapeSize = Math.round(Math.max(280, Math.min(width * 0.91, 344)));
 
   useEffect(() => {
@@ -105,6 +115,7 @@ export default function LoginScreen({ onJoin, onEmail, onMobile, onGoogle, prepa
 
   return <SafeAreaView style={styles.safe}>
     <KeyboardAvoidingView style={styles.safe} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.loginContent} showsVerticalScrollIndicator={false}>
       <View style={[styles.hero, { height: heroHeight }]}>
         <Animated.View style={[styles.heroLayer, { opacity: heroEntrance, transform: [{ translateY: heroTranslate }] }]}>
           <Reanimated.View style={[styles.purpleOrb, { width: shapeSize * 0.92, height: shapeSize * 0.92, borderRadius: shapeSize, top: heroHeight * 0.39 }, purpleStyle]} />
@@ -135,7 +146,7 @@ export default function LoginScreen({ onJoin, onEmail, onMobile, onGoogle, prepa
         </Animated.View>
 
         <Animated.View style={[styles.inputShell, itemStyle(1)]}>
-          {contactMode === 'email' ? <Text style={styles.mailIcon}>✉</Text> : <TextInput accessibilityLabel="Country code" value={countryCode} onChangeText={(value) => setCountryCode(value.replace(/[^+\d]/g, '').slice(0, 5))} keyboardType="phone-pad" style={styles.countryCode} />}
+          {contactMode === 'email' ? <View style={styles.mailIcon}><MailIcon /></View> : <View style={styles.countryPrefix}><CountryMark code={countryCode} /><TextInput accessibilityLabel="Country code" value={countryCode} onChangeText={(value) => setCountryCode(value.replace(/[^+\d]/g, '').slice(0, 5))} keyboardType="phone-pad" style={styles.countryCode} /></View>}
           <TextInput
             accessibilityLabel={contactMode === 'email' ? 'Your email address' : 'Your mobile number'}
             autoCapitalize="none"
@@ -167,12 +178,14 @@ export default function LoginScreen({ onJoin, onEmail, onMobile, onGoogle, prepa
         <Animated.View style={itemStyle(4)}><View style={styles.joinRow}><Text style={styles.join}>New here? </Text><Pressable accessibilityRole="button" accessibilityLabel="Join the lab" onPress={onJoin} hitSlop={10}><Text style={styles.joinLink}>Join the lab ✳</Text></Pressable></View></Animated.View>
         {preparing ? <Text style={styles.preparing}>Preparing your creative universe…</Text> : null}
       </Animated.View>
+      </ScrollView>
     </KeyboardAvoidingView>
   </SafeAreaView>;
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#FFFFFF' },
+  loginContent: { flexGrow: 1 },
   hero: { backgroundColor: COLORS.ink, overflow: 'hidden' },
   heroLayer: { ...StyleSheet.absoluteFillObject },
   purpleOrb: { position: 'absolute', left: '22%', backgroundColor: COLORS.purple },
@@ -196,8 +209,9 @@ const styles = StyleSheet.create({
   contactTabText: { color: COLORS.caption, fontFamily: 'Inter_700Bold', fontSize: 12 },
   contactTabTextActive: { color: COLORS.ink },
   inputShell: { height: 49, borderWidth: 1, borderColor: COLORS.outline, borderRadius: 12, flexDirection: 'row', alignItems: 'center', paddingLeft: 12, backgroundColor: '#FFFFFF', marginTop: 9 },
-  countryCode: { width: 46, height: '100%', marginRight: 8, borderRightWidth: 1, borderRightColor: COLORS.outline, color: COLORS.ink, fontFamily: 'Inter_700Bold', fontSize: 13, padding: 0 },
-  mailIcon: { color: '#9B8CAA', fontSize: 12, marginRight: 9, marginTop: -1 },
+  countryPrefix: { height: 28, marginRight: 9, paddingRight: 9, borderRightWidth: 1, borderRightColor: COLORS.outline, flexDirection: 'row', alignItems: 'center', gap: 5 },
+  countryCode: { width: 35, height: 25, lineHeight: 20, textAlignVertical: 'center', color: COLORS.ink, fontFamily: 'Inter_700Bold', fontSize: 13, padding: 0, margin: 0 },
+  mailIcon: { width: 20, height: 20, marginRight: 8, alignItems: 'center', justifyContent: 'center' },
   input: { flex: 1, height: '100%', color: COLORS.ink, fontFamily: 'Inter_400Regular', fontSize: 13, padding: 0, paddingRight: 12 },
   emailButton: { height: 49, marginTop: 11, borderRadius: 12, backgroundColor: COLORS.purple, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
   emailButtonText: { color: '#FFFFFF', fontFamily: 'Inter_700Bold', fontSize: 14, lineHeight: 20 },
